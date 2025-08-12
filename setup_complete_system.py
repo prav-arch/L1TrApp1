@@ -30,7 +30,7 @@ def setup_enhanced_clickhouse():
         client.command("""
             CREATE TABLE IF NOT EXISTS anomalies (
                 id UUID DEFAULT generateUUIDv4(),
-                timestamp DateTime DEFAULT now(),
+                timestamp DateTime,
                 anomaly_type String,
                 description String,
                 severity Enum('low' = 1, 'medium' = 2, 'high' = 3, 'critical' = 4),
@@ -44,8 +44,8 @@ def setup_enhanced_clickhouse():
                 model_agreement UInt8 DEFAULT 0,
                 individual_model_scores String DEFAULT '{}',
                 status Enum('active' = 1, 'resolved' = 2, 'investigating' = 3) DEFAULT 'active',
-                created_at DateTime DEFAULT now(),
-                updated_at DateTime DEFAULT now()
+                created_at DateTime,
+                updated_at DateTime
             ) ENGINE = MergeTree()
             ORDER BY (timestamp, severity, anomaly_type)
             TTL timestamp + INTERVAL 90 DAY
@@ -58,7 +58,7 @@ def setup_enhanced_clickhouse():
                 filename String,
                 file_path String DEFAULT '',
                 file_size UInt64 DEFAULT 0,
-                processing_time DateTime DEFAULT now(),
+                processing_time DateTime,
                 total_samples UInt32,
                 anomalies_detected UInt32,
                 session_id String,
@@ -66,7 +66,7 @@ def setup_enhanced_clickhouse():
                 ml_models_used Array(String) DEFAULT [],
                 average_confidence Float32 DEFAULT 0.0,
                 processing_duration_ms UInt32 DEFAULT 0,
-                created_at DateTime DEFAULT now()
+                created_at DateTime
             ) ENGINE = MergeTree()
             ORDER BY (processing_time, session_id)
             TTL processing_time + INTERVAL 30 DAY
@@ -76,7 +76,7 @@ def setup_enhanced_clickhouse():
         client.command("""
             CREATE TABLE IF NOT EXISTS sessions (
                 session_id String,
-                start_time DateTime DEFAULT now(),
+                start_time DateTime,
                 end_time DateTime DEFAULT '1900-01-01 00:00:00',
                 files_to_process UInt32,
                 files_completed UInt32 DEFAULT 0,
@@ -84,7 +84,7 @@ def setup_enhanced_clickhouse():
                 status Enum('pending' = 1, 'processing' = 2, 'completed' = 3, 'failed' = 4),
                 ml_model_versions String DEFAULT '{}',
                 analysis_parameters String DEFAULT '{}',
-                created_at DateTime DEFAULT now()
+                created_at DateTime
             ) ENGINE = MergeTree()
             ORDER BY start_time
             TTL start_time + INTERVAL 7 DAY
@@ -96,7 +96,7 @@ def setup_enhanced_clickhouse():
                 id UUID DEFAULT generateUUIDv4(),
                 model_name String,
                 session_id String,
-                timestamp DateTime DEFAULT now(),
+                timestamp DateTime,
                 total_predictions UInt32,
                 anomalies_detected UInt32,
                 average_confidence Float32,
@@ -104,7 +104,7 @@ def setup_enhanced_clickhouse():
                 false_negative_rate Float32 DEFAULT 0.0,
                 accuracy_score Float32 DEFAULT 0.0,
                 model_version String DEFAULT '',
-                created_at DateTime DEFAULT now()
+                created_at DateTime
             ) ENGINE = MergeTree()
             ORDER BY (timestamp, model_name)
         """)

@@ -6,6 +6,7 @@ Insert realistic dummy anomaly data into ClickHouse for testing the L1 troublesh
 import clickhouse_connect
 import random
 import json
+import traceback
 from datetime import datetime, timedelta
 
 def get_clickhouse_client():
@@ -21,6 +22,8 @@ def get_clickhouse_client():
         return client
     except Exception as e:
         print(f"Failed to connect to ClickHouse: {e}")
+        print("Connection error stack trace:")
+        traceback.print_exc()
         return None
 
 def generate_realistic_anomalies():
@@ -144,23 +147,25 @@ def insert_anomalies(client, anomalies):
     print(f"Inserting {len(anomalies)} dummy anomalies into ClickHouse...")
     
     try:
-        # Prepare data for batch insert - match the actual table schema
+        # Prepare data for batch insert - match the frontend expected schema
         data = []
         for anomaly in anomalies:
             row = [
-                anomaly['anomaly_id'],
+                anomaly['anomaly_id'],  # id
                 anomaly['timestamp'],
-                anomaly['source_file'],  # file_path
-                'pcap',                  # file_format
-                anomaly['anomaly_type'],
-                anomaly['severity'],
-                anomaly['confidence_score'],
-                random.randint(1, 10000),  # packet_number
-                random.randint(1, 1000),   # line_number
+                anomaly['anomaly_type'],  # type
                 anomaly['description'],
-                1,  # ml_detected (1 = true)
-                0,  # rule_based_detected (0 = false)
-                anomaly['context_data']  # details
+                anomaly['severity'],
+                anomaly['source_file'],
+                random.randint(1, 10000),  # packet_number
+                generate_mac_address(),   # mac_address
+                f"UE-{random.randint(100000, 999999)}",  # ue_id
+                anomaly['context_data'],  # details
+                anomaly['status'],
+                anomaly['anomaly_type'],
+                anomaly['confidence_score'],
+                anomaly['detection_algorithm'],
+                anomaly['context_data']
             ]
             data.append(row)
         
@@ -169,10 +174,10 @@ def insert_anomalies(client, anomalies):
             'anomalies',
             data,
             column_names=[
-                'anomaly_id', 'timestamp', 'file_path', 'file_format',
-                'anomaly_type', 'severity', 'confidence_score', 
-                'packet_number', 'line_number', 'description',
-                'ml_detected', 'rule_based_detected', 'details'
+                'id', 'timestamp', 'type', 'description', 'severity',
+                'source_file', 'packet_number', 'mac_address', 'ue_id',
+                'details', 'status', 'anomaly_type', 'confidence_score',
+                'detection_algorithm', 'context_data'
             ]
         )
         
@@ -184,6 +189,13 @@ def insert_anomalies(client, anomalies):
         
     except Exception as e:
         print(f"Error inserting anomalies: {e}")
+        print("Full stack trace:")
+        traceback.print_exc()
+        print(f"Data sample being inserted:")
+        if data:
+            print(f"First row: {data[0]}")
+            print(f"Column count: {len(data[0])}")
+            print(f"Total rows: {len(data)}")
 
 def insert_session_data(client):
     """Insert realistic session data"""
@@ -228,6 +240,13 @@ def insert_session_data(client):
         print(f"Successfully inserted {len(sessions)} session records")
     except Exception as e:
         print(f"Error inserting sessions: {e}")
+        print("Full stack trace:")
+        traceback.print_exc()
+        print(f"Session data sample being inserted:")
+        if sessions:
+            print(f"First session: {sessions[0]}")
+            print(f"Column count: {len(sessions[0])}")
+            print(f"Total sessions: {len(sessions)}")
 
 def main():
     """Main function to insert dummy data"""
@@ -263,6 +282,8 @@ def main():
             print(f"[{row[0]}] {row[1]} ({row[2]}): {row[3]}")
     except Exception as e:
         print(f"Error fetching sample data: {e}")
+        print("Sample data fetch error stack trace:")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()

@@ -55,7 +55,7 @@ def create_clickhouse_tables():
         ue_id String,
         du_mac String DEFAULT '00:11:22:33:44:67',
         ru_mac String DEFAULT '6c:ad:ad:00:03:2a',
-        timestamp DateTime DEFAULT now(),
+        timestamp DateTime,
         status Enum8('active' = 1, 'resolved' = 2, 'ignored' = 3) DEFAULT 'active'
     ) ENGINE = MergeTree()
     ORDER BY (timestamp, file_type, severity)
@@ -76,7 +76,7 @@ def create_clickhouse_tables():
         processing_status Enum8('pending' = 1, 'processing' = 2, 'completed' = 3, 'failed' = 4) DEFAULT 'pending',
         events_extracted UInt32 DEFAULT 0,
         anomalies_found UInt32 DEFAULT 0,
-        processed_at DateTime DEFAULT now(),
+        processed_at DateTime,
         error_message String
     ) ENGINE = MergeTree()
     ORDER BY (processed_at, processing_status)
@@ -96,7 +96,7 @@ def create_clickhouse_tables():
         pcap_files UInt32 DEFAULT 0,
         text_files UInt32 DEFAULT 0,
         total_anomalies UInt32 DEFAULT 0,
-        start_time DateTime DEFAULT now(),
+        start_time DateTime,
         end_time DateTime,
         duration_seconds UInt32,
         status Enum8('running' = 1, 'completed' = 2, 'failed' = 3) DEFAULT 'running'
@@ -116,7 +116,7 @@ def create_clickhouse_tables():
         metric_name String,
         metric_value Float64,
         metric_text String,
-        created_at DateTime DEFAULT now()
+        created_at DateTime
     ) ENGINE = MergeTree()
     ORDER BY (created_at, session_id, metric_name)
     SETTINGS index_granularity = 8192

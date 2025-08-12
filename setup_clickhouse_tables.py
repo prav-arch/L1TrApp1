@@ -43,21 +43,23 @@ def create_clickhouse_tables():
         tables = {
             'anomalies': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.anomalies (
-                    anomaly_id String,
+                    id String,
                     timestamp DateTime,
-                    file_path String,
-                    file_format String,
-                    anomaly_type String,
-                    severity String,
-                    confidence_score Float64,
-                    packet_number UInt32,
-                    line_number UInt32,
+                    type String,
                     description String,
-                    ml_detected UInt8,
-                    rule_based_detected UInt8,
-                    details String
+                    severity String,
+                    source_file String,
+                    packet_number UInt32,
+                    mac_address String,
+                    ue_id String,
+                    details String,
+                    status String,
+                    anomaly_type String,
+                    confidence_score Float64,
+                    detection_algorithm String,
+                    context_data String
                 ) ENGINE = MergeTree()
-                ORDER BY (timestamp, file_path, anomaly_type)
+                ORDER BY (timestamp, type, severity)
             """,
             
             'analysis_sessions': """

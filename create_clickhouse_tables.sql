@@ -11,7 +11,7 @@ USE l1_anomaly_detection;
 -- 1. Main anomalies table for storing detected anomalies
 CREATE TABLE IF NOT EXISTS anomalies (
     anomaly_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     file_path String,
     file_format String,
     anomaly_type String,
@@ -29,7 +29,7 @@ ORDER BY (timestamp, file_path, anomaly_type);
 -- 2. Analysis sessions table for tracking processing sessions
 CREATE TABLE IF NOT EXISTS analysis_sessions (
     session_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     file_path String,
     file_format String,
     total_packets UInt32,
@@ -46,7 +46,7 @@ ORDER BY (timestamp, file_path);
 -- 3. ML training metrics table for storing training results
 CREATE TABLE IF NOT EXISTS training_metrics (
     training_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     model_type String,
     training_data_path String,
     model_save_path String,
@@ -64,7 +64,7 @@ ORDER BY (timestamp, model_type);
 -- 4. Comprehensive anomalies table for all L1 analysis types
 CREATE TABLE IF NOT EXISTS comprehensive_anomalies (
     anomaly_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     file_path String,
     file_format String,
     analysis_category String,
@@ -90,7 +90,7 @@ ORDER BY (timestamp, file_path, analysis_category, anomaly_type);
 -- 5. L1 analysis sessions table for comprehensive analysis tracking
 CREATE TABLE IF NOT EXISTS l1_analysis_sessions (
     session_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     file_path String,
     file_format String,
     total_packets UInt32,
@@ -115,7 +115,7 @@ ORDER BY (timestamp, file_path);
 CREATE TABLE IF NOT EXISTS ml_algorithm_details (
     detection_id String,
     session_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     file_path String,
     algorithm_name String,
     anomaly_detected UInt8,
@@ -128,7 +128,7 @@ ORDER BY (timestamp, session_id, algorithm_name);
 -- 7. Feature vectors table for ML training data
 CREATE TABLE IF NOT EXISTS feature_vectors (
     vector_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     file_path String,
     line_number UInt32,
     packet_number UInt32,
@@ -141,7 +141,7 @@ ORDER BY (timestamp, file_path);
 -- 8. System status table for tracking system health
 CREATE TABLE IF NOT EXISTS system_status (
     status_id String,
-    timestamp DateTime DEFAULT now(),
+    timestamp DateTime,
     component_name String,
     status String,
     uptime_seconds UInt32,

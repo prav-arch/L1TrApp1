@@ -50,7 +50,7 @@ def create_clickhouse_schema():
             ue_id String,
             du_mac String,
             ru_mac String,
-            timestamp DateTime DEFAULT now(),
+            timestamp DateTime,
             status Enum8('open' = 1, 'investigating' = 2, 'resolved' = 3, 'active' = 4)
         ) ENGINE = MergeTree()
         ORDER BY (timestamp, id)
@@ -68,7 +68,7 @@ def create_clickhouse_schema():
             filename String,
             file_type String,
             file_size UInt64,
-            upload_date DateTime DEFAULT now(),
+            upload_date DateTime,
             processing_status Enum8('pending' = 1, 'processing' = 2, 'completed' = 3, 'failed' = 4),
             anomalies_found UInt32 DEFAULT 0,
             processing_time UInt32,
@@ -103,7 +103,7 @@ def create_clickhouse_schema():
             id UInt64,
             metric_name String,
             metric_value Float64,
-            timestamp DateTime DEFAULT now(),
+            timestamp DateTime,
             category String
         ) ENGINE = MergeTree()
         ORDER BY timestamp
