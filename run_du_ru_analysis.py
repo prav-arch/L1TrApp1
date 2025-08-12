@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+"""
+Step-by-step guide to run DU→RU fronthaul analysis
+Shows exact commands and expected output for L1 Troubleshooting Tool
+"""
+
+import os
+import sys
+
+def show_how_to_run():
+    """Display complete instructions for running DU→RU analysis"""
+    
+    print("🚀 HOW TO RUN DU→RU FRONTHAUL ANALYSIS")
+    print("=" * 60)
+    print()
+    
+    print("STEP 1: CHECK YOUR SETUP")
+    print("-" * 30)
+    print("First, verify your configuration:")
+    print("Command: python test_streaming_mistral.py")
+    print()
+    print("This checks:")
+    print("• Mistral model at /tmp/llm_models/mistral-7b-instruct-v0.2.Q4_K_M.gguf")
+    print("• llama.cpp binary at /tmp/llama.cpp/build/bin/llama-cli")
+    print("• ClickHouse database connection")
+    print()
+    
+    print("STEP 2: PREPARE YOUR PCAP FILE")
+    print("-" * 30)
+    print("You need a PCAP file containing 5G fronthaul traffic with:")
+    print("• DU MAC address: 00:11:22:33:44:67")
+    print("• RU MAC address: 6c:ad:ad:00:03:2a")
+    print()
+    print("Example file locations:")
+    print("• /path/to/your/fronthaul_capture.pcap")
+    print("• ./network_dump.pcap") 
+    print("• /tmp/5g_fronthaul.pcapng")
+    print()
+    
+    print("STEP 3: RUN DU→RU ANALYSIS")
+    print("-" * 30)
+    print("Main command for streaming analysis:")
+    print()
+    print("python stream_pcap_analysis.py YOUR_PCAP_FILE.pcap")
+    print()
+    print("Example:")
+    print("python stream_pcap_analysis.py /tmp/fronthaul_dump.pcap")
+    print()
+    
+    print("WHAT YOU'LL SEE:")
+    print("-" * 30)
+    print("The analysis will display:")
+    print()
+    print("1. PACKET ANALYSIS SUMMARY")
+    print("   - Total packets processed")
+    print("   - DU→RU communications detected")
+    print("   - eCPRI flows identified")
+    print("   - Timing violations found")
+    print()
+    
+    print("2. CRITICAL DU→RU TIMING VIOLATIONS")
+    print("   - Specific delays from DU (00:11:22:33:44:67) to RU (6c:ad:ad:00:03:2a)")
+    print("   - Latency measurements in microseconds")
+    print("   - Severity levels (HIGH: 100μs-1000μs, CRITICAL: >1000μs)")
+    print()
+    
+    print("3. REAL-TIME AI ANALYSIS")
+    print("   - Streaming recommendations from Mistral model")
+    print("   - Root cause analysis of timing issues")
+    print("   - Suggested remediation steps")
+    print()
+    
+    print("ALTERNATIVE COMMANDS:")
+    print("-" * 30)
+    print("For basic analysis without streaming:")
+    print("python analyze_pcap_with_mistral.py YOUR_PCAP_FILE.pcap")
+    print()
+    print("To view current violations (if any in database):")
+    print("python show_timing_violations.py")
+    print()
+    
+    print("EXAMPLE COMPLETE WORKFLOW:")
+    print("-" * 30)
+    print("# 1. Test setup")
+    print("python test_streaming_mistral.py")
+    print()
+    print("# 2. Run analysis on your PCAP")
+    print("python stream_pcap_analysis.py /path/to/your/capture.pcap")
+    print()
+    print("# 3. View web dashboard")
+    print("# Open http://localhost:8090 in your browser")
+    print()
+    
+    print("EXPECTED OUTPUT SAMPLE:")
+    print("-" * 30)
+    print("🔄 Starting streaming fronthaul analysis...")
+    print("============================================================")
+    print("📁 Processing: /tmp/fronthaul_dump.pcap")
+    print("📊 Total Packets: 15420")
+    print("🔍 DU→RU Communications: 1247")
+    print("⚠️  Timing Violations: 89")
+    print("🚨 CRITICAL DU→RU Issues: 23")
+    print()
+    print("🎯 DU→RU TIMING VIOLATIONS DETECTED:")
+    print("Packet 1247: 187.4μs (HIGH) - Control command delay")
+    print("Packet 1289: 1234.7μs (CRITICAL) - Configuration timeout")
+    print("Packet 1356: 298.2μs (HIGH) - Status request delay")
+    print()
+    print("🤖 AI ANALYSIS STREAMING...")
+    print("[Real-time Mistral recommendations appear here]")
+    print()
+    
+    print("TROUBLESHOOTING:")
+    print("-" * 30)
+    print("If you get errors:")
+    print()
+    print("• 'Model not found' → Check Mistral model path")
+    print("• 'Binary not found' → Verify llama.cpp installation")
+    print("• 'Database error' → Ensure ClickHouse is running")
+    print("• 'No packets found' → Verify PCAP file contains Ethernet frames")
+    print("• 'No DU-RU traffic' → Check if MAC addresses match your equipment")
+    print()
+    
+    print("FILE LOCATIONS:")
+    print("-" * 30)
+    current_dir = os.getcwd()
+    print(f"Current directory: {current_dir}")
+    print("Analysis scripts:")
+    print("• stream_pcap_analysis.py (main DU→RU analysis)")
+    print("• analyze_pcap_with_mistral.py (basic analysis)")
+    print("• test_streaming_mistral.py (setup verification)")
+    print()
+    
+    print("Ready to analyze DU→RU fronthaul communication!")
+    print("Run: python stream_pcap_analysis.py YOUR_PCAP_FILE.pcap")
+
+if __name__ == "__main__":
+    show_how_to_run()

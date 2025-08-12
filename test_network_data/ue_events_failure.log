@@ -1,0 +1,11 @@
+UE_ID: 460110123456789 - Attach Request Received
+UE_ID: 460110123456789 - Authentication Challenge Sent
+UE_ID: 460110123456789 - Authentication Failed - Invalid Response
+UE_ID: 460110123456789 - Attach Request Retry (Attempt 2/3)
+UE_ID: 460110123456789 - Context Setup Failed - DU Communication Error
+UE_ID: 460110123456789 - Attach Request Retry (Attempt 3/3)
+UE_ID: 460110123456789 - Final Attach Failure - Timeout Exceeded
+UE_ID: 460110987654321 - Handover Request Initiated
+UE_ID: 460110987654321 - Target Cell Signal Weak (-98dBm)
+UE_ID: 460110987654321 - Handover Failed - Signal Loss During Procedure
+UE_ID: 460110987654321 - UE Detached Due to Mobility Failure

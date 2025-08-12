@@ -1,0 +1,6 @@
+14:31:15.123 UE_ID=460110555666777 attach_request cell_id=12349
+14:31:15.145 UE_ID=460110555666777 attach_accept cell_id=12349
+14:31:15.167 UE_ID=460110555666777 attach_complete cell_id=12349
+14:31:16.234 UE_ID=460110888999000 attach_request cell_id=12350
+14:31:16.456 UE_ID=460110888999000 detach_request cell_id=12350
+14:31:16.478 UE_ID=460110888999000 detach_accept cell_id=12350

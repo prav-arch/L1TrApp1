@@ -1,0 +1,7 @@
+Sample network packet data
+DU_MAC: 00:11:22:33:44:67
+RU_MAC: 6c:ad:ad:00:03:2a
+Timestamp: 2025-08-03 17:30:00
+Packet size: 1500
+Protocol: Ethernet
+Latency: 150μs

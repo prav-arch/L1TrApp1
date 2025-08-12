@@ -1,0 +1,41 @@
+L1 NETWORK ANOMALY ANALYSIS REPORT
+==================================================
+Analysis Date: 2025-08-03 17:42:38
+Folder: test_data
+Files Processed: 3
+Anomalies Found: 4
+
+ANOMALY: sample_file1.txt
+Line: 1
+Type: UE Event Pattern
+File Type: TEXT
+UE ID: 460110123456789
+Issues:
+  - Failed Attach Procedures: 2 incomplete
+  - Context Failures: 2 detected
+  - Missing Detach Events: UE may have unexpectedly disconnected
+
+ANOMALY: sample_file1.txt
+Line: 5
+Type: UE Event Pattern
+File Type: TEXT
+UE ID: 460110987654321
+Issues:
+  - Missing Detach Events: UE may have unexpectedly disconnected
+
+ANOMALY: sample_file1.txt
+Line: 8
+Type: UE Event Pattern
+File Type: TEXT
+UE ID: 460110111222333
+Issues:
+  - Abnormal UE Event Pattern
+
+ANOMALY: sample_file1.txt
+Line: 10
+Type: UE Event Pattern
+File Type: TEXT
+UE ID: 460110444555666
+Issues:
+  - Context Failures: 1 detected
+

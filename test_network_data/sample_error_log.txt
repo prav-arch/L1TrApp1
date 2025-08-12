@@ -1,0 +1,10 @@
+2025-08-06 12:30:15 [ERROR] DU-RU communication timeout after 150ms
+2025-08-06 12:30:20 [CRITICAL] UE attach failed - context establishment timeout
+2025-08-06 12:30:25 [WARNING] High jitter detected on fronthaul interface: 85us
+2025-08-06 12:30:30 [ERROR] Protocol violation: Invalid frame structure in packet 245
+2025-08-06 12:30:35 [INFO] Processing UE handover request
+2025-08-06 12:30:40 [FATAL] RU unresponsive - 5 consecutive timeouts
+2025-08-06 12:30:45 [ERROR] Packet loss detected: 15 packets dropped in 10s window
+2025-08-06 12:30:50 [WARNING] Timing synchronization drift: +125us
+2025-08-06 12:30:55 [ERROR] UE detach procedure failed - network unreachable
+2025-08-06 12:31:00 [DEBUG] Normal traffic flow resumed

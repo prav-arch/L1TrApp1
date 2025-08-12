@@ -1,0 +1,126 @@
+{
+  "analysis_timestamp": "2025-08-06T12:32:46.866761",
+  "total_anomalies": 15,
+  "anomalies": [
+    {
+      "type": "DU-RU Communication",
+      "description": "2025-08-06 12:30:15 [ERROR] DU-RU communication timeout after 150ms",
+      "source_file": "sample_error_log.txt",
+      "line_number": 1,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.861298"
+    },
+    {
+      "type": "UE Event",
+      "description": "2025-08-06 12:30:20 [CRITICAL] UE attach failed - context establishment timeout",
+      "source_file": "sample_error_log.txt",
+      "line_number": 2,
+      "severity": "critical",
+      "timestamp": "2025-08-06T12:32:46.861313"
+    },
+    {
+      "type": "DU-RU Communication",
+      "description": "2025-08-06 12:30:25 [WARNING] High jitter detected on fronthaul interface: 85us",
+      "source_file": "sample_error_log.txt",
+      "line_number": 3,
+      "severity": "medium",
+      "timestamp": "2025-08-06T12:32:46.861321"
+    },
+    {
+      "type": "DU-RU Communication",
+      "description": "2025-08-06 12:30:30 [ERROR] Protocol violation: Invalid frame structure in packet 245",
+      "source_file": "sample_error_log.txt",
+      "line_number": 4,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.861326"
+    },
+    {
+      "type": "DU-RU Communication",
+      "description": "2025-08-06 12:30:40 [FATAL] RU unresponsive - 5 consecutive timeouts",
+      "source_file": "sample_error_log.txt",
+      "line_number": 6,
+      "severity": "critical",
+      "timestamp": "2025-08-06T12:32:46.861342"
+    },
+    {
+      "type": "Protocol Error",
+      "description": "2025-08-06 12:30:45 [ERROR] Packet loss detected: 15 packets dropped in 10s window",
+      "source_file": "sample_error_log.txt",
+      "line_number": 7,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.861357"
+    },
+    {
+      "type": "Timing Issue",
+      "description": "2025-08-06 12:30:50 [WARNING] Timing synchronization drift: +125us",
+      "source_file": "sample_error_log.txt",
+      "line_number": 8,
+      "severity": "medium",
+      "timestamp": "2025-08-06T12:32:46.861367"
+    },
+    {
+      "type": "DU-RU Communication",
+      "description": "2025-08-06 12:30:55 [ERROR] UE detach procedure failed - network unreachable",
+      "source_file": "sample_error_log.txt",
+      "line_number": 9,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.861372"
+    },
+    {
+      "type": "UE Event",
+      "description": "UE_ID: 460110123456789 - Authentication Failed - Invalid Response",
+      "source_file": "ue_events_failure.log",
+      "line_number": 3,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.862059"
+    },
+    {
+      "type": "UE Event",
+      "description": "UE_ID: 460110123456789 - Attach Request Retry (Attempt 2/3)",
+      "source_file": "ue_events_failure.log",
+      "line_number": 4,
+      "severity": "medium",
+      "timestamp": "2025-08-06T12:32:46.862083"
+    },
+    {
+      "type": "DU-RU Communication",
+      "description": "UE_ID: 460110123456789 - Context Setup Failed - DU Communication Error",
+      "source_file": "ue_events_failure.log",
+      "line_number": 5,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.862088"
+    },
+    {
+      "type": "UE Event",
+      "description": "UE_ID: 460110123456789 - Attach Request Retry (Attempt 3/3)",
+      "source_file": "ue_events_failure.log",
+      "line_number": 6,
+      "severity": "medium",
+      "timestamp": "2025-08-06T12:32:46.862095"
+    },
+    {
+      "type": "UE Event",
+      "description": "UE_ID: 460110123456789 - Final Attach Failure - Timeout Exceeded",
+      "source_file": "ue_events_failure.log",
+      "line_number": 7,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.862102"
+    },
+    {
+      "type": "DU-RU Communication",
+      "description": "UE_ID: 460110987654321 - Handover Failed - Signal Loss During Procedure",
+      "source_file": "ue_events_failure.log",
+      "line_number": 10,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.862121"
+    },
+    {
+      "type": "DU-RU Communication",
+      "description": "UE_ID: 460110987654321 - UE Detached Due to Mobility Failure",
+      "source_file": "ue_events_failure.log",
+      "line_number": 11,
+      "severity": "high",
+      "timestamp": "2025-08-06T12:32:46.862126"
+    }
+  ]
+}
