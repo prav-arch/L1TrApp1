@@ -81,7 +81,7 @@ def create_clickhouse_tables():
             'training_metrics': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.training_metrics (
                     training_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     model_type String,
                     training_data_path String,
                     model_save_path String,
@@ -100,7 +100,7 @@ def create_clickhouse_tables():
             'comprehensive_anomalies': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.comprehensive_anomalies (
                     anomaly_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     file_path String,
                     file_format String,
                     analysis_category String,
@@ -127,7 +127,7 @@ def create_clickhouse_tables():
             'l1_analysis_sessions': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.l1_analysis_sessions (
                     session_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     file_path String,
                     file_format String,
                     total_packets UInt32,
@@ -153,7 +153,7 @@ def create_clickhouse_tables():
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.ml_algorithm_details (
                     detection_id String,
                     session_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     file_path String,
                     algorithm_name String,
                     anomaly_detected UInt8,
@@ -167,7 +167,7 @@ def create_clickhouse_tables():
             'feature_vectors': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.feature_vectors (
                     vector_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     file_path String,
                     line_number UInt32,
                     packet_number UInt32,
@@ -181,7 +181,7 @@ def create_clickhouse_tables():
             'system_status': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.system_status (
                     status_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     component_name String,
                     status String,
                     uptime_seconds UInt32,
