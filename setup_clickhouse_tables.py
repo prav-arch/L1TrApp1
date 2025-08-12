@@ -44,7 +44,7 @@ def create_clickhouse_tables():
             'anomalies': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.anomalies (
                     anomaly_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     file_path String,
                     file_format String,
                     anomaly_type String,
@@ -63,7 +63,7 @@ def create_clickhouse_tables():
             'analysis_sessions': """
                 CREATE TABLE IF NOT EXISTS l1_anomaly_detection.analysis_sessions (
                     session_id String,
-                    timestamp DateTime DEFAULT now(),
+                    timestamp DateTime,
                     file_path String,
                     file_format String,
                     total_packets UInt32,

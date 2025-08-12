@@ -195,17 +195,22 @@ def insert_session_data(client):
     for i in range(10):
         timestamp = base_time + timedelta(hours=random.randint(0, 24))
         session = [
-            timestamp.strftime('%Y-%m-%d %H:%M:%S'),
             f"session_{random.randint(1000, 9999)}",
-            f"analysis_{timestamp.strftime('%Y%m%d_%H%M%S')}.txt",
-            random.randint(1000, 50000),  # packets_analyzed
-            random.randint(1, 20),        # anomalies_found
-            round(random.uniform(10.5, 300.7), 2),  # processing_time
+            timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            f"analysis_{timestamp.strftime('%Y%m%d_%H%M%S')}.txt",  # file_path
+            'pcap',  # file_format
+            random.randint(1000, 50000),    # total_packets
+            random.randint(500, 5000),      # total_lines
+            random.randint(1, 20),          # total_anomalies
+            random.randint(0, 5),           # high_severity_anomalies
+            random.randint(2, 10),          # medium_severity_anomalies
+            random.randint(1, 8),           # low_severity_anomalies
+            round(random.uniform(10.5, 300.7), 2),  # analysis_duration_seconds
             json.dumps({
                 'analysis_type': random.choice(['pcap', 'text', 'hybrid']),
                 'algorithms_used': ['isolation_forest', 'dbscan'],
                 'total_features': random.randint(15, 50)
-            })
+            })  # session_details
         ]
         sessions.append(session)
     
@@ -214,8 +219,10 @@ def insert_session_data(client):
             'analysis_sessions',
             sessions,
             column_names=[
-                'timestamp', 'session_id', 'file_name', 'packets_analyzed',
-                'anomalies_found', 'processing_time', 'metadata'
+                'session_id', 'timestamp', 'file_path', 'file_format',
+                'total_packets', 'total_lines', 'total_anomalies',
+                'high_severity_anomalies', 'medium_severity_anomalies', 
+                'low_severity_anomalies', 'analysis_duration_seconds', 'session_details'
             ]
         )
         print(f"Successfully inserted {len(sessions)} session records")
