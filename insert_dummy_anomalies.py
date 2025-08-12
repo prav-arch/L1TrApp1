@@ -16,7 +16,7 @@ def get_clickhouse_client():
             port=8123,
             username='default',
             password='',
-            database='default'
+            database='l1_anomaly_detection'
         )
         return client
     except Exception as e:
@@ -144,21 +144,23 @@ def insert_anomalies(client, anomalies):
     print(f"Inserting {len(anomalies)} dummy anomalies into ClickHouse...")
     
     try:
-        # Prepare data for batch insert
+        # Prepare data for batch insert - match the actual table schema
         data = []
         for anomaly in anomalies:
             row = [
-                anomaly['timestamp'],
                 anomaly['anomaly_id'],
+                anomaly['timestamp'],
+                anomaly['source_file'],  # file_path
+                'pcap',                  # file_format
                 anomaly['anomaly_type'],
                 anomaly['severity'],
-                anomaly['description'],
-                anomaly['source_file'],
                 anomaly['confidence_score'],
-                anomaly['detection_algorithm'],
-                anomaly['status'],
-                anomaly['context_data'],
-                anomaly['resolution_time']
+                random.randint(1, 10000),  # packet_number
+                random.randint(1, 1000),   # line_number
+                anomaly['description'],
+                1,  # ml_detected (1 = true)
+                0,  # rule_based_detected (0 = false)
+                anomaly['context_data']  # details
             ]
             data.append(row)
         
@@ -167,9 +169,10 @@ def insert_anomalies(client, anomalies):
             'anomalies',
             data,
             column_names=[
-                'timestamp', 'anomaly_id', 'anomaly_type', 'severity', 
-                'description', 'source_file', 'confidence_score', 
-                'detection_algorithm', 'status', 'context_data', 'resolution_time'
+                'anomaly_id', 'timestamp', 'file_path', 'file_format',
+                'anomaly_type', 'severity', 'confidence_score', 
+                'packet_number', 'line_number', 'description',
+                'ml_detected', 'rule_based_detected', 'details'
             ]
         )
         

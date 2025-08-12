@@ -28,6 +28,7 @@ def create_clickhouse_tables():
             port=8123,
             username='default',
             password='',
+            database='l1_anomaly_detection',
             connect_timeout=10,
             send_receive_timeout=30
         )
