@@ -311,6 +311,14 @@ export class ClickHouseStorage implements IStorage {
     return result;
   }
 
+  private async execClickHouseQueryWithParams(query: string, queryParams: Record<string, any>): Promise<any> {
+    console.log(`ClickHouse Query: ${query}`, queryParams);
+    
+    // Always connect to ClickHouse - no fallbacks
+    const result = await clickhouse.queryWithParams(query, queryParams);
+    return result;
+  }
+
   private getSampleAnomalies() {
     return [
       {
@@ -384,19 +392,21 @@ export class ClickHouseStorage implements IStorage {
   // Anomalies
   async getAnomalies(limit = 50, offset = 0, type?: string, severity?: string): Promise<Anomaly[]> {
     let query = "SELECT * FROM anomalies WHERE 1=1";
-    const params: any[] = [];
+    const queryParams: Record<string, any> = {
+      limit: limit,
+      offset: offset
+    };
 
     if (type) {
-      query += " AND type = {param_" + params.length + ":String}";
-      params.push(type);
+      query += " AND type = {type:String}";
+      queryParams.type = type;
     }
     if (severity) {
-      query += " AND severity = {param_" + params.length + ":String}";
-      params.push(severity);
+      query += " AND severity = {severity:String}";
+      queryParams.severity = severity;
     }
 
-    query += " ORDER BY timestamp DESC LIMIT {param_" + params.length + ":UInt32} OFFSET {param_" + (params.length + 1) + ":UInt32}";
-    params.push(limit, offset);
+    query += " ORDER BY timestamp DESC LIMIT {limit:UInt32} OFFSET {offset:UInt32}";
 
     const result = await this.execClickHouseQuery(query, params);
     

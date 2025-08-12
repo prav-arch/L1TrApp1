@@ -33,6 +33,21 @@ class ClickHouseDB {
     }
   }
 
+  async queryWithParams(sql: string, queryParams: Record<string, any>): Promise<any> {
+    try {
+      const result = await this.client.query({
+        query: sql,
+        query_params: queryParams,
+      });
+      
+      const data = await result.json();
+      return data.data || [];
+    } catch (error) {
+      console.error('ClickHouse Query Error:', error);
+      throw error;
+    }
+  }
+
   async query(sql: string, params: any[] = []): Promise<any> {
     if (!this.isConnected && !(await this.testConnection())) {
       throw new Error('ClickHouse not available');
