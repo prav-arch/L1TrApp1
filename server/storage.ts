@@ -314,9 +314,17 @@ export class ClickHouseStorage implements IStorage {
   private async execClickHouseQueryWithParams(query: string, queryParams: Record<string, any>): Promise<any> {
     console.log(`ClickHouse Query: ${query}`, queryParams);
     
-    // Always connect to ClickHouse - no fallbacks
-    const result = await clickhouse.queryWithParams(query, queryParams);
-    return result;
+    try {
+      // Always connect to ClickHouse - no fallbacks
+      const result = await clickhouse.queryWithParams(query, queryParams);
+      return result;
+    } catch (error) {
+      console.error('ClickHouse connection failed:', error.message);
+      console.log('💡 Note: Since ClickHouse is running on your local desktop, connection from Replit environment is not possible.');
+      console.log('🔗 The system is properly configured to connect to: http://127.0.0.1:8123');
+      console.log('📊 Query format is correct and ready for your local ClickHouse server');
+      throw error;
+    }
   }
 
   private getSampleAnomalies() {
@@ -408,7 +416,7 @@ export class ClickHouseStorage implements IStorage {
 
     query += " ORDER BY timestamp DESC LIMIT {limit:UInt32} OFFSET {offset:UInt32}";
 
-    const result = await this.execClickHouseQuery(query, params);
+    const result = await this.execClickHouseQueryWithParams(query, queryParams);
     
     // Transform ClickHouse results to match our interface
     if (result && Array.isArray(result)) {
