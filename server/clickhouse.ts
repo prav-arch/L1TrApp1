@@ -49,47 +49,29 @@ class ClickHouseDB {
   }
 
   async query(sql: string, params: any[] = []): Promise<any> {
-    if (!this.isConnected && !(await this.testConnection())) {
-      throw new Error('ClickHouse not available');
-    }
-    
     try {
-      // Use parameterized queries properly for ClickHouse
+      // Use simple parameter substitution for better ClickHouse compatibility
+      let processedQuery = sql;
+      if (params && params.length > 0) {
+        let paramIndex = 0;
+        processedQuery = sql.replace(/\?/g, () => {
+          const value = params[paramIndex++];
+          if (value === null || value === undefined) return 'NULL';
+          return typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : String(value);
+        });
+      }
+      
+      console.log('Executing ClickHouse Query:', processedQuery);
+      
       const result = await this.client.query({
-        query: sql,
-        query_params: params.reduce((acc, param, index) => {
-          acc[`param_${index}`] = param;
-          return acc;
-        }, {} as Record<string, any>),
+        query: processedQuery,
       });
       
       const data = await result.json();
       return data.data || [];
     } catch (error) {
       console.error('ClickHouse Query Error:', error);
-      
-      // If parameterized query fails, try with substitution as fallback
-      try {
-        let processedQuery = sql;
-        if (params && params.length > 0) {
-          let paramIndex = 0;
-          processedQuery = sql.replace(/\?/g, () => {
-            const value = params[paramIndex++];
-            if (value === null || value === undefined) return 'NULL';
-            return typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : String(value);
-          });
-        }
-        
-        const result = await this.client.query({
-          query: processedQuery,
-        });
-        
-        const data = await result.json();
-        return data.data || [];
-      } catch (fallbackError) {
-        console.error('ClickHouse Fallback Query Error:', fallbackError);
-        throw fallbackError;
-      }
+      throw error;
     }
   }
 

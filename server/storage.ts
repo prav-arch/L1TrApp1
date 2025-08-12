@@ -400,23 +400,21 @@ export class ClickHouseStorage implements IStorage {
   // Anomalies
   async getAnomalies(limit = 50, offset = 0, type?: string, severity?: string): Promise<Anomaly[]> {
     let query = "SELECT * FROM anomalies WHERE 1=1";
-    const queryParams: Record<string, any> = {
-      limit: limit,
-      offset: offset
-    };
+    const params: any[] = [];
 
     if (type) {
-      query += " AND type = {type:String}";
-      queryParams.type = type;
+      query += " AND type = ?";
+      params.push(type);
     }
     if (severity) {
-      query += " AND severity = {severity:String}";
-      queryParams.severity = severity;
+      query += " AND severity = ?";
+      params.push(severity);
     }
 
-    query += " ORDER BY timestamp DESC LIMIT {limit:UInt32} OFFSET {offset:UInt32}";
+    query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+    params.push(limit, offset);
 
-    const result = await this.execClickHouseQueryWithParams(query, queryParams);
+    const result = await this.execClickHouseQuery(query, params);
     
     // Transform ClickHouse results to match our interface
     if (result && Array.isArray(result)) {
