@@ -8,6 +8,7 @@ import os
 import sys
 import json
 import argparse
+import time
 from datetime import datetime
 from pathlib import Path
 import numpy as np
@@ -197,7 +198,9 @@ class EnhancedMLAnalyzer:
     def analyze_folder_with_ml_details(self, folder_path):
         """Analyze folder with detailed ML algorithm outputs"""
         
+        start_time = time.time()
         print(f"Enhanced ML Analysis: {folder_path}")
+        print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 60)
         
         if not ML_AVAILABLE:
@@ -232,6 +235,21 @@ class EnhancedMLAnalyzer:
                 all_anomalies.extend(file_anomalies)
         
         self.print_final_summary(all_anomalies)
+        
+        # Calculate and print timing
+        end_time = time.time()
+        total_time = end_time - start_time
+        
+        print(f"\n" + "="*50)
+        print("ANALYSIS TIMING SUMMARY")
+        print("="*50)
+        print(f"Started: {datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Ended: {datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Total time: {total_time:.2f} seconds ({total_time/60:.1f} minutes)")
+        print(f"Average per file: {total_time/len(files):.2f} seconds")
+        print(f"Files processed: {len(files)}")
+        print(f"Anomalies found: {len(all_anomalies)}")
+        
         return all_anomalies
     
     def analyze_single_file_detailed(self, file_path, session_id):
@@ -303,8 +321,12 @@ class EnhancedMLAnalyzer:
                     status = "ANOMALY" if vote == 1 else "NORMAL"
                     print(f"    {model.replace('_', ' ').title()}: {status} ({conf:.3f})")
                 
-                # Store in ClickHouse
-                self.store_anomaly_in_clickhouse(anomaly, filename, session_id, model_votes)
+                # Store in ClickHouse only if 3+ algorithms agree
+                if anomaly.get('save_to_db', False):
+                    self.store_anomaly_in_clickhouse(anomaly, filename, session_id, model_votes)
+                    print(f"    Stored in database: {anomaly.get('model_agreement', 0)}/4 algorithms agreed")
+                else:
+                    print(f"    Not saved to DB: Only {anomaly.get('model_agreement', 0)}/4 algorithms agreed (need 3+)")
                 
                 print(f"    ML Validation: Confidence={anomaly.get('confidence', 0):.3f}, "
                       f"Agreement={anomaly.get('model_agreement', 0)}/4 models")
@@ -348,16 +370,24 @@ class EnhancedMLAnalyzer:
             dbscan_pred = model_votes.get('dbscan', {}).get('prediction', 0)
             rf_score = model_votes.get('random_forest', {}).get('confidence', 0.0)
             
-            # Prepare algorithm details JSON
+            # Convert numpy types to Python native types for JSON serialization
+            model_votes_json = {}
+            for k, v in model_votes.items():
+                model_votes_json[k] = {
+                    'prediction': int(v.get('prediction', 0)),
+                    'confidence': float(v.get('confidence', 0))
+                }
+            
+            # Prepare algorithm details JSON with proper type conversion
             algorithm_results = json.dumps({
-                'model_votes': model_votes,
-                'ensemble_confidence': anomaly.get('confidence', 0),
-                'model_agreement': anomaly.get('model_agreement', 0),
+                'model_votes': model_votes_json,
+                'ensemble_confidence': float(anomaly.get('confidence', 0)),
+                'model_agreement': int(anomaly.get('model_agreement', 0)),
                 'confidence_calculation': {
                     'formula': 'ensemble_confidence = (model_agreements / total_models) * (sum_of_scores / max(agreements, 1))',
-                    'model_agreements': anomaly.get('model_agreement', 0),
+                    'model_agreements': int(anomaly.get('model_agreement', 0)),
                     'total_models': 4,
-                    'score_sum': iso_score + svm_score + abs(dbscan_pred) + rf_score
+                    'score_sum': float(iso_score + svm_score + abs(dbscan_pred) + rf_score)
                 }
             })
             
@@ -735,9 +765,30 @@ class EnhancedMLAnalyzer:
             dbscan_anomalies = np.where(dbscan_pred == -1)[0]  # Outliers labeled as -1
             anomaly_indices.update(dbscan_anomalies)
             
+            # Calculate proper confidence scores for DBSCAN
+            # Higher confidence for samples farther from any cluster center
+            dbscan_scores = []
+            for i, pred in enumerate(dbscan_pred):
+                if pred == -1:  # Outlier
+                    # Calculate distance from nearest cluster center for confidence
+                    min_distance = np.inf
+                    for cluster_id in set(dbscan_pred):
+                        if cluster_id != -1:  # Valid cluster
+                            cluster_points = features_scaled[dbscan_pred == cluster_id]
+                            if len(cluster_points) > 0:
+                                cluster_center = np.mean(cluster_points, axis=0)
+                                distance = np.linalg.norm(features_scaled[i] - cluster_center)
+                                min_distance = min(min_distance, distance)
+                    
+                    # Convert distance to confidence (0.3-0.9 range)
+                    confidence = min(0.3 + (min_distance / 10), 0.9) if min_distance != np.inf else 0.6
+                    dbscan_scores.append(-confidence)  # Negative for anomaly
+                else:  # Normal point
+                    dbscan_scores.append(0.1)  # Low positive score for normal points
+            
             ml_results['dbscan'] = {
                 'predictions': dbscan_pred,
-                'scores': np.where(dbscan_pred == -1, -1, 1),  # Simple binary score
+                'scores': np.array(dbscan_scores),
                 'anomaly_count': len(dbscan_anomalies)
             }
         except Exception as e:
@@ -768,10 +819,14 @@ class EnhancedMLAnalyzer:
             # Calculate confidence based on model agreement and scores
             confidence = min((model_agreements / len(ml_results)) * (total_score / max(model_agreements, 1)), 1.0)
             
+            # Only save to database if 3 or more algorithms agree (3/4 or 4/4)
+            save_to_db = model_agreements >= 3
+            
             anomaly_record = {
                 'packet_number': idx + 1,
                 'confidence': confidence,
                 'model_agreement': model_agreements,
+                'save_to_db': save_to_db,
                 'model_votes': voting_details,
                 'severity': self.get_severity_from_confidence(confidence),
                 'type': 'ML Detected Anomaly',

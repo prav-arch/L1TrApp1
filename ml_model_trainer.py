@@ -599,8 +599,26 @@ def main():
     print(f"   Algorithms: {args.algorithms}")
     print(f"   Data Directory: {args.data_dir}")
     
-    # Start training
+    # Start training with timing
+    start_time = time.time()
+    print(f"\nTRAINING STARTED: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+    
     trainer.train_models_tesla_p40(args.data_dir)
+    
+    # Calculate and print training time
+    end_time = time.time()
+    total_time = end_time - start_time
+    
+    print("\n" + "=" * 60)
+    print("TRAINING COMPLETION SUMMARY")
+    print("=" * 60)
+    print(f"Training started: {datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Training ended: {datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Total training time: {total_time:.2f} seconds ({total_time/60:.1f} minutes)")
+    print(f"Samples processed: {args.max_samples:,}")
+    print(f"GPU acceleration: {use_gpu}")
+    print(f"Models saved to: ./models/")
 
 
 if __name__ == "__main__":
