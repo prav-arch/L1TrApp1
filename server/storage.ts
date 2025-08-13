@@ -407,11 +407,11 @@ export class ClickHouseStorage implements IStorage {
   // Anomalies
   async getAnomalies(limit = 50, offset = 0, type?: string, severity?: string): Promise<Anomaly[]> {
     try {
-      let query = "SELECT * FROM anomalies WHERE 1=1";
+      let query = "SELECT * FROM l1_anomaly_detection.anomalies WHERE 1=1";
       const params: any[] = [];
 
       if (type) {
-        query += " AND type = ?";
+        query += " AND anomaly_type = ?";
         params.push(type);
       }
       if (severity) {
@@ -429,19 +429,21 @@ export class ClickHouseStorage implements IStorage {
         return result.map((row: any) => ({
           id: row.id?.toString() || '',
           timestamp: new Date(row.timestamp),
-          type: row.type || 'unknown',
+          type: row.anomaly_type || 'unknown', // Map ClickHouse anomaly_type to frontend type
           description: row.description || '',
           severity: row.severity || 'medium',
           source_file: row.source_file || '',
           packet_number: row.packet_number || null,
-          mac_address: row.mac_address || null,
-          ue_id: row.ue_id || null,
-          details: row.details || null,
+          mac_address: null, // ClickHouse doesn't have separate mac_address column
+          ue_id: null, // ClickHouse doesn't have separate ue_id column
+          details: null, // ClickHouse stores in ml_algorithm_details
           status: row.status || 'open',
+          recommendation: null,
+          // Additional ML fields from ClickHouse
           anomaly_type: row.anomaly_type || null,
           confidence_score: row.confidence_score || null,
-          detection_algorithm: row.detection_algorithm || null,
-          context_data: row.context_data || null
+          detection_algorithm: 'ml_ensemble',
+          context_data: row.ml_algorithm_details || null
         }));
       }
       
@@ -465,7 +467,7 @@ export class ClickHouseStorage implements IStorage {
   async getAnomaly(id: string): Promise<Anomaly | undefined> {
     try {
       console.log('🔍 Looking up anomaly in ClickHouse:', id);
-      const result = await this.execClickHouseQuery("SELECT * FROM anomalies WHERE id = ? LIMIT 1", [id]);
+      const result = await this.execClickHouseQuery("SELECT * FROM l1_anomaly_detection.anomalies WHERE id = ? LIMIT 1", [id]);
       
       if (result && result.length > 0) {
         const row = result[0];
@@ -593,7 +595,7 @@ export class ClickHouseStorage implements IStorage {
 
   // Files
   async getProcessedFiles(): Promise<ProcessedFile[]> {
-    const result = await this.execClickHouseQuery("SELECT * FROM processed_files ORDER BY upload_date DESC");
+    const result = await this.execClickHouseQuery("SELECT * FROM l1_anomaly_detection.processed_files ORDER BY processing_time DESC");
     return result || [];
   }
 
@@ -660,7 +662,7 @@ export class ClickHouseStorage implements IStorage {
 
   // Sessions
   async getSessions(): Promise<Session[]> {
-    const result = await this.execClickHouseQuery("SELECT * FROM sessions ORDER BY start_time DESC");
+    const result = await this.execClickHouseQuery("SELECT * FROM l1_anomaly_detection.sessions ORDER BY start_time DESC");
     return result || [];
   }
 
@@ -737,15 +739,15 @@ export class ClickHouseStorage implements IStorage {
       // Try to get real metrics from ClickHouse first
       
       try {
-        const anomalyResult = await clickhouse.query("SELECT count() FROM anomalies");
-        const sessionResult = await clickhouse.query("SELECT count() FROM sessions");
-        const fileResult = await clickhouse.query("SELECT count() FROM processed_files WHERE processing_status = 'completed'");
-        const totalFileResult = await clickhouse.query("SELECT count() FROM processed_files");
+        const anomalyResult = await clickhouse.query("SELECT count() FROM l1_anomaly_detection.anomalies");
+        const sessionResult = await clickhouse.query("SELECT count() FROM l1_anomaly_detection.sessions");
+        const fileResult = await clickhouse.query("SELECT count() FROM l1_anomaly_detection.processed_files WHERE processing_status = 'completed'");
+        const totalFileResult = await clickhouse.query("SELECT count() FROM l1_anomaly_detection.processed_files");
         
-        const totalAnomalies = anomalyResult.data?.[0]?.count || 0;
-        const sessionsAnalyzed = sessionResult.data?.[0]?.count || 0;
-        const filesProcessed = fileResult.data?.[0]?.count || 0;
-        const totalFiles = totalFileResult.data?.[0]?.count || 0;
+        const totalAnomalies = anomalyResult.data?.[0]?.['count()'] || 0;
+        const sessionsAnalyzed = sessionResult.data?.[0]?.['count()'] || 0;
+        const filesProcessed = fileResult.data?.[0]?.['count()'] || 0;
+        const totalFiles = totalFileResult.data?.[0]?.['count()'] || 0;
         
         const detectionRate = totalFiles > 0 ? (filesProcessed / totalFiles) * 100 : 0;
         
@@ -808,10 +810,10 @@ export class ClickHouseStorage implements IStorage {
           SELECT 
             anomaly_type as type,
             count() as count,
-            count() * 100.0 / (SELECT count() FROM anomalies) as percentage
-          FROM anomalies
+            count() * 100.0 / (SELECT count() FROM l1_anomaly_detection.anomalies) as percentage
+          FROM l1_anomaly_detection.anomalies
           GROUP BY anomaly_type
-          ORDER BY count DESC
+          ORDER BY count() DESC
         `);
         
         if (result.data && result.data.length > 0) {
@@ -840,9 +842,8 @@ export class ClickHouseStorage implements IStorage {
   }
 }
 
-// For demonstration purposes, use MemStorage with sample data
-// In production, this will be configured to use ClickHouse storage
-console.log('🔗 Using memory storage with L1 troubleshooting sample data for demonstration');
-console.log('💡 On your local system, this will automatically connect to ClickHouse at 127.0.0.1:8123');
+// Use ClickHouse storage to connect to your real anomaly data
+console.log('🔗 Connecting to ClickHouse storage with your real anomaly data');
+console.log('💡 Reading from l1_anomaly_detection database at 127.0.0.1:8123');
 
-export const storage = new MemStorage();
+export const storage = new ClickHouseStorage();
