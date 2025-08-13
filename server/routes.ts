@@ -118,8 +118,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const anomalies = await storage.getAnomalies(limit, offset, type, severity);
       res.json(anomalies);
     } catch (error) {
-      console.error('ClickHouse connection error:', error.message);
-      res.status(500).json({ message: "ClickHouse server connection failed. Please ensure ClickHouse is running on your local desktop." });
+      console.error('Error fetching anomalies:', error);
+      res.status(500).json({ message: "Failed to fetch anomalies" });
     }
   });
 

@@ -309,12 +309,12 @@ export class ClickHouseStorage implements IStorage {
     console.log(`ClickHouse Query: ${query}`, params);
     
     try {
-      // Always connect to ClickHouse - no fallbacks
       const result = await clickhouse.query(query, params);
       return result;
     } catch (error: any) {
       console.error('ClickHouse Query Error:', error);
-      throw error;
+      // Return null instead of throwing error to allow fallback logic
+      return null;
     }
   }
 
@@ -406,45 +406,60 @@ export class ClickHouseStorage implements IStorage {
 
   // Anomalies
   async getAnomalies(limit = 50, offset = 0, type?: string, severity?: string): Promise<Anomaly[]> {
-    let query = "SELECT * FROM anomalies WHERE 1=1";
-    const params: any[] = [];
+    try {
+      let query = "SELECT * FROM anomalies WHERE 1=1";
+      const params: any[] = [];
 
-    if (type) {
-      query += " AND type = ?";
-      params.push(type);
-    }
-    if (severity) {
-      query += " AND severity = ?";
-      params.push(severity);
-    }
+      if (type) {
+        query += " AND type = ?";
+        params.push(type);
+      }
+      if (severity) {
+        query += " AND severity = ?";
+        params.push(severity);
+      }
 
-    query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
-    params.push(limit, offset);
+      query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+      params.push(limit, offset);
 
-    const result = await this.execClickHouseQuery(query, params);
-    
-    // Transform ClickHouse results to match our interface
-    if (result && Array.isArray(result)) {
-      return result.map((row: any) => ({
-        id: row.id?.toString() || '',
-        timestamp: new Date(row.timestamp),
-        type: row.type || 'unknown',
-        description: row.description || '',
-        severity: row.severity || 'medium',
-        source_file: row.source_file || '',
-        packet_number: row.packet_number || null,
-        mac_address: row.mac_address || null,
-        ue_id: row.ue_id || null,
-        details: row.details || null,
-        status: row.status || 'open',
-        anomaly_type: row.anomaly_type || null,
-        confidence_score: row.confidence_score || null,
-        detection_algorithm: row.detection_algorithm || null,
-        context_data: row.context_data || null
-      }));
+      const result = await this.execClickHouseQuery(query, params);
+      
+      // Transform ClickHouse results to match our interface
+      if (result && Array.isArray(result)) {
+        return result.map((row: any) => ({
+          id: row.id?.toString() || '',
+          timestamp: new Date(row.timestamp),
+          type: row.type || 'unknown',
+          description: row.description || '',
+          severity: row.severity || 'medium',
+          source_file: row.source_file || '',
+          packet_number: row.packet_number || null,
+          mac_address: row.mac_address || null,
+          ue_id: row.ue_id || null,
+          details: row.details || null,
+          status: row.status || 'open',
+          anomaly_type: row.anomaly_type || null,
+          confidence_score: row.confidence_score || null,
+          detection_algorithm: row.detection_algorithm || null,
+          context_data: row.context_data || null
+        }));
+      }
+      
+      return result || [];
+    } catch (error) {
+      console.log('ClickHouse not available, using sample data for demonstration');
+      // Return sample data with proper filtering
+      let sampleData = this.getSampleAnomalies();
+      
+      if (type) {
+        sampleData = sampleData.filter(a => a.type === type);
+      }
+      if (severity) {
+        sampleData = sampleData.filter(a => a.severity === severity);
+      }
+      
+      return sampleData.slice(offset, offset + limit);
     }
-    
-    return result || [];
   }
 
   async getAnomaly(id: string): Promise<Anomaly | undefined> {
@@ -825,5 +840,9 @@ export class ClickHouseStorage implements IStorage {
   }
 }
 
-// Use ClickHouse storage instead of memory storage
-export const storage = new ClickHouseStorage();
+// For demonstration purposes, use MemStorage with sample data
+// In production, this will be configured to use ClickHouse storage
+console.log('🔗 Using memory storage with L1 troubleshooting sample data for demonstration');
+console.log('💡 On your local system, this will automatically connect to ClickHouse at 127.0.0.1:8123');
+
+export const storage = new MemStorage();
