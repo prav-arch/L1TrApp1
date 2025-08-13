@@ -75,9 +75,9 @@ class EnhancedMLAnalyzer:
             return
             
         try:
-            # Connect to ClickHouse
+            # Connect to ClickHouse 18 with l1_anomaly_detection database
             self.clickhouse_client = clickhouse_connect.get_client(
-                host='localhost',
+                host='127.0.0.1',
                 port=8123,
                 username='default',
                 password='',
@@ -101,92 +101,59 @@ class EnhancedMLAnalyzer:
             # Create database if it doesn't exist
             self.clickhouse_client.command("CREATE DATABASE IF NOT EXISTS l1_anomaly_detection")
             
-            # Enhanced anomalies table with ML algorithm details
+            # ClickHouse 18 compatible anomalies table
             anomalies_table = """
             CREATE TABLE IF NOT EXISTS l1_anomaly_detection.anomalies (
-                id UInt64 DEFAULT generateUUIDv4(),
-                timestamp DateTime DEFAULT now(),
-                anomaly_type LowCardinality(String),
+                id UInt64,
+                timestamp DateTime,
+                anomaly_type String,
                 description String,
-                severity LowCardinality(String),
+                severity String,
                 source_file String,
                 packet_number UInt32,
                 session_id String,
                 confidence_score Float64,
                 model_agreement UInt8,
                 ml_algorithm_details String,
-                isolation_forest_score Float64 DEFAULT 0.0,
-                one_class_svm_score Float64 DEFAULT 0.0,
-                dbscan_prediction Int8 DEFAULT 0,
-                random_forest_score Float64 DEFAULT 0.0,
+                isolation_forest_score Float64,
+                one_class_svm_score Float64,
+                dbscan_prediction Int8,
+                random_forest_score Float64,
                 ensemble_vote String,
                 detection_timestamp String,
-                status LowCardinality(String) DEFAULT 'active'
-            ) ENGINE = MergeTree()
-            ORDER BY (timestamp, severity, anomaly_type)
+                status String
+            ) ENGINE = MergeTree(timestamp, (timestamp, severity, anomaly_type), 8192)
             PARTITION BY toYYYYMM(timestamp)
             """
             
-            # ML model performance tracking table
-            ml_performance_table = """
-            CREATE TABLE IF NOT EXISTS l1_anomaly_detection.ml_model_performance (
-                timestamp DateTime DEFAULT now(),
-                session_id String,
-                model_name LowCardinality(String),
-                detection_rate Float64,
-                avg_confidence Float64,
-                accuracy_score Float64,
-                precision_score Float64,
-                recall_score Float64,
-                f1_score Float64,
-                file_analyzed String,
-                total_samples UInt32,
-                anomalies_found UInt32,
-                false_positives UInt32,
-                true_positives UInt32
-            ) ENGINE = MergeTree()
-            ORDER BY (timestamp, model_name, session_id)
-            """
-            
-            # Analysis sessions table
+            # ClickHouse 18 compatible sessions table
             sessions_table = """
-            CREATE TABLE IF NOT EXISTS l1_anomaly_detection.analysis_sessions (
+            CREATE TABLE IF NOT EXISTS l1_anomaly_detection.sessions (
                 session_id String,
-                start_time DateTime DEFAULT now(),
+                start_time DateTime,
                 end_time DateTime,
-                folder_path String,
                 files_to_process UInt32,
-                files_analyzed UInt32,
+                files_processed UInt32,
                 total_anomalies UInt32,
-                confidence_threshold Float64,
-                ensemble_quality_score Float64,
-                consensus_rate Float64,
-                status LowCardinality(String) DEFAULT 'processing'
-            ) ENGINE = MergeTree()
-            ORDER BY (start_time, session_id)
+                status String,
+                processing_time_seconds Float64
+            ) ENGINE = MergeTree(start_time, start_time, 8192)
             """
             
-            # File processing log table
+            # ClickHouse 18 compatible processed files table
             processed_files_table = """
             CREATE TABLE IF NOT EXISTS l1_anomaly_detection.processed_files (
-                file_id UInt64 DEFAULT generateUUIDv4(),
-                session_id String,
                 filename String,
-                file_path String,
-                file_size UInt64,
-                processing_start DateTime,
-                processing_end DateTime,
+                processing_time DateTime,
                 total_samples UInt32,
-                anomalies_found UInt32,
-                processing_status LowCardinality(String),
-                error_message String DEFAULT ''
-            ) ENGINE = MergeTree()
-            ORDER BY (processing_start, session_id)
+                anomalies_detected UInt32,
+                session_id String,
+                processing_status String
+            ) ENGINE = MergeTree(processing_time, processing_time, 8192)
             """
             
-            # Execute table creation commands
+            # Execute table creation commands for ClickHouse 18
             self.clickhouse_client.command(anomalies_table)
-            self.clickhouse_client.command(ml_performance_table)
             self.clickhouse_client.command(sessions_table)
             self.clickhouse_client.command(processed_files_table)
             
@@ -346,10 +313,10 @@ class EnhancedMLAnalyzer:
         if self.clickhouse_client:
             try:
                 self.clickhouse_client.command(f"""
-                    INSERT INTO sessions 
-                    (session_id, start_time, files_to_process, status)
+                    INSERT INTO l1_anomaly_detection.sessions 
+                    (session_id, start_time, files_to_process, files_processed, total_anomalies, status, processing_time_seconds)
                     VALUES 
-                    ('{session_id}', now(), {file_count}, 'processing')
+                    ('{session_id}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', {file_count}, 0, 0, 'processing', 0)
                 """)
                 print(f"Created analysis session: {session_id}")
             except Exception as e:
@@ -395,38 +362,38 @@ class EnhancedMLAnalyzer:
             anomaly_type = self.classify_anomaly_type(filename, anomaly)
             severity = self.determine_severity(anomaly.get('confidence', 0), anomaly.get('model_agreement', 0))
             
-            # Insert with detailed ML algorithm data
-            insert_query = """
+            # ClickHouse 18 compatible insert with generated ID
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            anomaly_id = int(time.time() * 1000000)  # Use timestamp microseconds as ID
+            
+            insert_values = f"""
             INSERT INTO l1_anomaly_detection.anomalies 
-            (timestamp, anomaly_type, description, severity, source_file, packet_number, 
+            (id, timestamp, anomaly_type, description, severity, source_file, packet_number, 
              session_id, confidence_score, model_agreement, ml_algorithm_details, 
              isolation_forest_score, one_class_svm_score, dbscan_prediction, random_forest_score,
              ensemble_vote, detection_timestamp, status)
             VALUES 
-            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ({anomaly_id}, 
+             '{current_time}', 
+             '{anomaly_type}', 
+             'ML detected anomaly in {filename.replace("'", "''")}', 
+             '{severity}', 
+             '{filename.replace("'", "''")}', 
+             {anomaly.get('packet_number', 0)}, 
+             '{session_id}', 
+             {float(anomaly.get('confidence', 0))}, 
+             {int(anomaly.get('model_agreement', 0))}, 
+             '{algorithm_results.replace("'", "''")}', 
+             {float(iso_score)}, 
+             {float(svm_score)}, 
+             {int(dbscan_pred)}, 
+             {float(rf_score)}, 
+             '{json.dumps(model_votes_json).replace("'", "''")}', 
+             '{anomaly.get('timestamp', datetime.now().isoformat())}', 
+             'active')
             """
             
-            values = [
-                datetime.now(),
-                anomaly_type,
-                f'ML detected anomaly in {filename}',
-                severity,
-                filename,
-                anomaly.get('packet_number', 0),
-                session_id,
-                float(anomaly.get('confidence', 0)),
-                int(anomaly.get('model_agreement', 0)),
-                algorithm_results,
-                float(iso_score),
-                float(svm_score),
-                int(dbscan_pred),
-                float(rf_score),
-                json.dumps(model_votes),
-                anomaly.get('timestamp', datetime.now().isoformat()),
-                'active'
-            ]
-            
-            self.clickhouse_client.insert('l1_anomaly_detection.anomalies', [values])
+            self.clickhouse_client.command(insert_values)
             
         except Exception as e:
             print(f"Failed to store anomaly in ClickHouse: {e}")
@@ -439,12 +406,12 @@ class EnhancedMLAnalyzer:
         
         try:
             self.clickhouse_client.command(f"""
-                INSERT INTO processed_files 
+                INSERT INTO l1_anomaly_detection.processed_files 
                 (filename, processing_time, total_samples, anomalies_detected, 
                  session_id, processing_status)
                 VALUES 
-                ('{filename}', now(), {total_samples}, {anomalies_found}, 
-                 '{session_id}', 'completed')
+                ('{filename.replace("'", "''")}', '{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}', 
+                 {total_samples}, {anomalies_found}, '{session_id}', 'completed')
             """)
             
         except Exception as e:
