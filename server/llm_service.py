@@ -4,8 +4,10 @@ Mistral AI LLM Service for generating network troubleshooting recommendations
 """
 
 import os
+import sys
 import json
 import subprocess
+import time
 from typing import Generator, Dict, Any
 
 class MistralLLMService:
@@ -13,6 +15,19 @@ class MistralLLMService:
         self.model_path = "/tmp/llm_models"
         self.model_file = "mistral-7b-instruct-v0.2.Q4_K_M.gguf"
         self.full_model_path = os.path.join(self.model_path, self.model_file)
+        
+        # Print initialization logs
+        print("🚀 LLM SERVICE INITIALIZING...")
+        print(f"📍 Model path: {self.model_path}")
+        print(f"📄 Model file: {self.model_file}")
+        print(f"🔗 Full model path: {self.full_model_path}")
+        print(f"✅ Model exists: {self.is_model_available()}")
+        
+        if os.path.exists(self.model_path):
+            files = os.listdir(self.model_path)
+            print(f"📂 Files in model directory: {files}")
+        else:
+            print("❌ Model directory does not exist")
         
     def is_model_available(self) -> bool:
         """Check if Mistral model is available"""
@@ -53,14 +68,28 @@ Keep your response technical but clear, focusing on actionable steps that a netw
     
     def stream_recommendations(self, anomaly: Dict[str, Any]) -> Generator[str, None, None]:
         """Stream troubleshooting recommendations token by token"""
+        print("🔄 Starting stream_recommendations...")
+        print(f"📊 Anomaly ID: {anomaly.get('id', 'Unknown')}")
+        print(f"📋 Anomaly type: {anomaly.get('type', 'Unknown')}")
+        
         prompt = self.generate_troubleshooting_prompt(anomaly)
         
         # Always show the prompt first
         yield f"🔍 **ANALYSIS PROMPT SENT TO LLM:**\n\n{prompt}\n\n" + "="*80 + "\n\n🤖 **LLM RESPONSE:**\n\n"
         
         if not self.is_model_available():
+            print("⚠️ Mistral AI model not available, using fallback...")
             yield f"⚠️ Mistral AI model not found at {self.full_model_path}. Using fallback recommendations...\n\n"
-            yield self.generate_fallback_recommendation(anomaly)
+            
+            # Generate streaming fallback recommendation
+            fallback_text = self.generate_fallback_recommendation(anomaly)
+            
+            # Stream the fallback text word by word to simulate streaming
+            words = fallback_text.split()
+            for i, word in enumerate(words):
+                yield word + " "
+                if i % 5 == 0:  # Add slight delay every 5 words
+                    time.sleep(0.1)
             return
         
         try:
@@ -95,8 +124,14 @@ Keep your response technical but clear, focusing on actionable steps that a netw
                     continue
             
             if process is None:
+                print("❌ No LLM executable found, using fallback...")
                 # Fallback to a simple text-based recommendation
-                yield self.generate_fallback_recommendation(anomaly)
+                fallback_text = self.generate_fallback_recommendation(anomaly)
+                words = fallback_text.split()
+                for i, word in enumerate(words):
+                    yield word + " "
+                    if i % 5 == 0:  # Add slight delay every 5 words
+                        time.sleep(0.1)
                 return
             
             # Stream the output token by token
@@ -217,23 +252,35 @@ Keep your response technical but clear, focusing on actionable steps that a netw
 llm_service = MistralLLMService()
 
 def main():
-    """Main function for command line execution"""
-    import sys
+    """Main entry point for CLI usage"""
+    print("🚀 LLM Service started as CLI process", file=sys.stderr)
     
     if len(sys.argv) < 2:
-        print("Usage: python llm_service.py <anomaly_json>")
+        print("❌ Usage: python llm_service.py '<anomaly_json>'", file=sys.stderr)
+        print("Error: Missing anomaly data argument", file=sys.stderr)
         sys.exit(1)
     
     try:
         anomaly_json = sys.argv[1]
-        anomaly = json.loads(anomaly_json)
+        print(f"📥 Received anomaly JSON: {anomaly_json[:100]}...", file=sys.stderr)
         
-        # Stream recommendations token by token
-        for token in llm_service.stream_recommendations(anomaly):
-            print(token, end='', flush=True)
+        anomaly = json.loads(anomaly_json)
+        print(f"✅ Successfully parsed anomaly data", file=sys.stderr)
+        
+        service = MistralLLMService()
+        print("🤖 Starting recommendation generation...", file=sys.stderr)
+        
+        chunk_count = 0
+        for chunk in service.stream_recommendations(anomaly):
+            print(chunk, end='', flush=True)
+            chunk_count += 1
+            
+        print(f"✅ Completed streaming {chunk_count} chunks", file=sys.stderr)
             
     except Exception as e:
-        print(f"Error: {str(e)}", file=sys.stderr)
+        print(f"💥 Error in LLM service: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

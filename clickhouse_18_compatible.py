@@ -47,10 +47,10 @@ def create_legacy_schema(client):
         except:
             pass
         
-        # Create table with ClickHouse 18.x compatible syntax
+        # Create table with ClickHouse 18.x compatible syntax using Log engine
         create_sql = """CREATE TABLE anomalies (
     id String,
-    timestamp DateTime,
+    timestamp String,
     type String,
     description String,
     severity String,
@@ -60,7 +60,7 @@ def create_legacy_schema(client):
     ue_id String,
     details String,
     status String
-) ENGINE = MergeTree(timestamp, (id, timestamp), 8192)"""
+) ENGINE = Log"""
         
         client.command(create_sql)
         print("✓ Table created with ClickHouse 18.x syntax")

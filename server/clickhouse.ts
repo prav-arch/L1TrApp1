@@ -25,7 +25,7 @@ class ClickHouseDB {
       console.log('✅ ClickHouse connection successful');
       this.isConnected = true;
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ ClickHouse connection failed:', error.message);
       console.error('Please ensure ClickHouse is running on your local desktop server');
       this.isConnected = false;
@@ -63,13 +63,18 @@ class ClickHouseDB {
       
       console.log('Executing ClickHouse Query:', processedQuery);
       
+      // Use minimal settings for better compatibility with older ClickHouse versions
       const result = await this.client.query({
         query: processedQuery,
+        clickhouse_settings: {
+          // Minimal settings for ClickHouse 18.x compatibility
+          use_client_time_zone: 1
+        }
       });
       
       const data = await result.json();
       return data.data || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('ClickHouse Query Error:', error);
       throw error;
     }

@@ -69,7 +69,13 @@ export const insertMetricSchema = createInsertSchema(metrics).omit({
 });
 
 // Types
-export type Anomaly = typeof anomalies.$inferSelect;
+export type Anomaly = typeof anomalies.$inferSelect & {
+  // Additional fields for LLM compatibility
+  anomaly_type?: string;
+  confidence_score?: number;
+  detection_algorithm?: string;
+  context_data?: string;
+};
 export type InsertAnomaly = z.infer<typeof insertAnomalySchema>;
 
 export type ProcessedFile = typeof processed_files.$inferSelect;

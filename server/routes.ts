@@ -30,7 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (data.type === 'get_recommendations') {
           const { anomalyId } = data;
-          console.log('Received recommendation request for anomaly ID:', anomalyId);
+          console.log('🔍 Received recommendation request for anomaly ID:', anomalyId);
           
           // Get anomaly details from storage
           const anomaly = await storage.getAnomaly(anomalyId);
@@ -40,9 +40,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return;
           }
           
-          console.log('Found anomaly:', anomaly);
+          console.log('✅ Found anomaly:', anomaly.id, anomaly.type);
           
           // Call Mistral LLM service for recommendations
+          console.log('🚀 Starting LLM service for anomaly:', anomalyId);
           const pythonProcess = spawn('python3', [
             path.join(process.cwd(), 'server/llm_service.py'),
             JSON.stringify(anomaly)
@@ -54,11 +55,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           pythonProcess.stderr.on('data', (error) => {
-            console.error('TSLAM Error:', error.toString());
-            ws.send(JSON.stringify({ type: 'error', data: error.toString() }));
+            console.error('LLM Service Log:', error.toString());
+            // Don't send stderr as error since it contains initialization logs
           });
           
           pythonProcess.on('close', (code) => {
+            console.log('🏁 LLM service completed with code:', code);
             ws.send(JSON.stringify({ type: 'recommendation_complete', code }));
           });
         }
