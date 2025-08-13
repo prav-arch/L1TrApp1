@@ -122,7 +122,8 @@ class EnhancedMLAnalyzer:
                 ensemble_vote String,
                 detection_timestamp String,
                 status String
-            ) ENGINE = MergeTree(timestamp, (timestamp, severity, anomaly_type), 8192)
+            ) ENGINE = MergeTree
+            ORDER BY (timestamp, severity, anomaly_type)
             PARTITION BY toYYYYMM(timestamp)
             """
             
@@ -137,7 +138,8 @@ class EnhancedMLAnalyzer:
                 total_anomalies UInt32,
                 status String,
                 processing_time_seconds Float64
-            ) ENGINE = MergeTree(start_time, start_time, 8192)
+            ) ENGINE = MergeTree
+            ORDER BY start_time
             """
             
             # ClickHouse 18 compatible processed files table
@@ -149,7 +151,8 @@ class EnhancedMLAnalyzer:
                 anomalies_detected UInt32,
                 session_id String,
                 processing_status String
-            ) ENGINE = MergeTree(processing_time, processing_time, 8192)
+            ) ENGINE = MergeTree
+            ORDER BY processing_time
             """
             
             # Execute table creation commands for ClickHouse 18

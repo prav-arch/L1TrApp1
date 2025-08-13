@@ -57,7 +57,8 @@ def setup_clickhouse_tables():
             ensemble_vote String,
             detection_timestamp String,
             status String
-        ) ENGINE = MergeTree(timestamp, (timestamp, severity, anomaly_type), 8192)
+        ) ENGINE = MergeTree
+        ORDER BY (timestamp, severity, anomaly_type)
         PARTITION BY toYYYYMM(timestamp)
         """
         
@@ -72,7 +73,8 @@ def setup_clickhouse_tables():
             total_anomalies UInt32,
             status String,
             processing_time_seconds Float64
-        ) ENGINE = MergeTree(start_time, start_time, 8192)
+        ) ENGINE = MergeTree
+        ORDER BY start_time
         """
         
         # 3. Processed files log table
@@ -84,7 +86,8 @@ def setup_clickhouse_tables():
             anomalies_detected UInt32,
             session_id String,
             processing_status String
-        ) ENGINE = MergeTree(processing_time, processing_time, 8192)
+        ) ENGINE = MergeTree
+        ORDER BY processing_time
         """
         
         # 4. ML model performance tracking table
@@ -104,7 +107,8 @@ def setup_clickhouse_tables():
             anomalies_found UInt32,
             false_positives UInt32,
             true_positives UInt32
-        ) ENGINE = MergeTree(timestamp, (timestamp, model_name), 8192)
+        ) ENGINE = MergeTree
+        ORDER BY (timestamp, model_name)
         """
         
         # Execute table creation commands
