@@ -34,14 +34,14 @@ try:
     if torch.cuda.is_available():
         GPU_AVAILABLE = True
         device_name = torch.cuda.get_device_name(0)
-        print(f"🚀 PyTorch CUDA detected - {device_name} acceleration enabled")
+        print(f"PyTorch CUDA detected - {device_name} acceleration enabled")
         
         # Try scikit-learn GPU extensions
         try:
             from sklearn.utils import check_array
             from sklearn.base import BaseEstimator
             SKLEARN_GPU = True
-            print("✅ Scikit-learn GPU extensions available")
+            print("Scikit-learn GPU extensions available")
         except:
             SKLEARN_GPU = False
     else:
@@ -55,7 +55,7 @@ except ImportError:
 try:
     from numba import cuda, jit
     NUMBA_AVAILABLE = True
-    print("✅ Numba JIT compilation available for acceleration")
+    print(" Numba JIT compilation available for acceleration")
 except ImportError:
     NUMBA_AVAILABLE = False
 
@@ -81,10 +81,10 @@ class TeslaP40OptimizedMLTrainer:
         # GPU-OPTIMIZED: Use algorithms that benefit from GPU acceleration
         if self.use_gpu:
             self.selected_algorithms = algorithms or ['gpu_isolation_forest', 'gpu_dbscan', 'gpu_svm']
-            print(f"🎮 Tesla P40 Mode: {24}GB VRAM, batch_size={self.batch_size}")
+            print(f" Tesla P40 Mode: {24}GB VRAM, batch_size={self.batch_size}")
         else:
             self.selected_algorithms = algorithms or ['isolation_forest', 'one_class_svm']
-            print(f"🔄 CPU Mode: batch_size={self.batch_size}")
+            print(f" CPU Mode: batch_size={self.batch_size}")
         
         # OPTIMIZED: GPU-friendly ensemble weights
         self.ensemble_weights = {
@@ -107,20 +107,20 @@ class TeslaP40OptimizedMLTrainer:
             # Tesla P40 has 24GB VRAM - use 20GB for processing
             mempool = cupy.get_default_memory_pool()
             mempool.set_limit(size=20 * 1024**3)  # 20GB limit
-            print(f"🎮 GPU Memory: 20GB allocated for Tesla P40")
+            print(f" GPU Memory: 20GB allocated for Tesla P40")
         except Exception as e:
             print(f"⚠️ GPU memory setup warning: {e}")
     
     def extract_pcap_features_optimized(self, pcap_file: str) -> pd.DataFrame:
         """OPTIMIZED: Extract features with sampling and batch processing"""
-        print(f"🚀 OPTIMIZED extraction from {pcap_file}")
+        print(f" OPTIMIZED extraction from {pcap_file}")
         start_time = time.time()
         
         features = []
         
         try:
             # OPTIMIZATION 1: Read packets with count limit
-            print(f"🔍 Sampling strategy: max_samples={self.max_samples}")
+            print(f" Sampling strategy: max_samples={self.max_samples}")
             
             if self.max_samples:
                 # Read only subset of packets for large files
@@ -137,11 +137,11 @@ class TeslaP40OptimizedMLTrainer:
                         
                     # Progress indicator
                     if packet_count % 1000 == 0:
-                        print(f"  📊 Processed {packet_count} packets...")
+                        print(f"   Processed {packet_count} packets...")
             else:
                 packets = scapy.rdpcap(pcap_file)
             
-            print(f"📦 Processing {len(packets)} packets")
+            print(f" Processing {len(packets)} packets")
             
             # OPTIMIZATION 2: Vectorized feature extraction
             batch_features = []
@@ -167,7 +167,7 @@ class TeslaP40OptimizedMLTrainer:
                 if (i + 1) % self.batch_size == 0:
                     elapsed = time.time() - start_time
                     rate = (i + 1) / elapsed
-                    print(f"  ⚡ Batch {(i + 1) // self.batch_size}: {rate:.1f} packets/sec")
+                    print(f"   Batch {(i + 1) // self.batch_size}: {rate:.1f} packets/sec")
             
             df = pd.DataFrame(batch_features)
             
@@ -176,12 +176,12 @@ class TeslaP40OptimizedMLTrainer:
                 df['inter_arrival_time'] = df['packet_id'].diff().fillna(0) * 0.001  # Simplified timing
             
             elapsed = time.time() - start_time
-            print(f"✅ Feature extraction completed in {elapsed:.2f} seconds ({len(df)} features)")
+            print(f" Feature extraction completed in {elapsed:.2f} seconds ({len(df)} features)")
             
             return df
             
         except Exception as e:
-            print(f"❌ Error extracting features: {e}")
+            print(f" Error extracting features: {e}")
             return pd.DataFrame()
     
     def _get_protocol_simple(self, packet):
@@ -229,12 +229,12 @@ class TeslaP40OptimizedMLTrainer:
 
     def train_models_tesla_p40(self, data_dir: str):
         """TESLA P40 OPTIMIZED: Train models with GPU acceleration"""
-        print(f"🚀 TESLA P40 GPU TRAINING INITIATED")
-        print(f"📂 Data directory: {data_dir}")
-        print(f"⚙️ Max samples: {self.max_samples}")
-        print(f"🔧 Algorithms: {self.selected_algorithms}")
-        print(f"📊 Batch size: {self.batch_size}")
-        print(f"🎮 GPU Mode: {self.use_gpu}")
+        print(f"TESLA P40 GPU TRAINING INITIATED")
+        print(f"Data directory: {data_dir}")
+        print(f"Max samples: {self.max_samples}")
+        print(f"Algorithms: {self.selected_algorithms}")
+        print(f"Batch size: {self.batch_size}")
+        print(f"GPU Mode: {self.use_gpu}")
         
         start_time = time.time()
         
@@ -245,29 +245,21 @@ class TeslaP40OptimizedMLTrainer:
             X_train = self._load_training_data_optimized(data_dir)
         
         if X_train is None or len(X_train) == 0:
-            print("❌ No training data found")
+            print("No training data found")
             return
         
-        print(f"📈 Training set size: {len(X_train)} samples")
+        print(f"Training set size: {len(X_train)} samples")
         
-        # Step 2: GPU-accelerated feature scaling
-        print("🔄 Scaling features...")
-        if self.use_gpu:
-            # Move data to GPU for scaling
-            X_gpu = self._convert_to_gpu(X_train)
-            scaler = GPUStandardScaler()
-            X_scaled = scaler.fit_transform(X_gpu)
-            self.scalers['main'] = scaler
-            print("🎮 Features scaled on Tesla P40 GPU")
-        else:
-            scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X_train)
-            self.scalers['main'] = scaler
-            print("🔄 Features scaled on CPU")
+        # Step 2: Feature scaling
+        print("Scaling features...")
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X_train)
+        self.scalers['main'] = scaler
+        print("Features scaled successfully")
         
-        # Step 3: Train GPU-accelerated algorithms
+        # Step 3: Train algorithms
         for algorithm in self.selected_algorithms:
-            print(f"\n🤖 Training {algorithm} on Tesla P40...")
+            print(f"\nTraining {algorithm} on Tesla P40...")
             algo_start = time.time()
             
             try:
@@ -282,27 +274,27 @@ class TeslaP40OptimizedMLTrainer:
                 elif algorithm == 'one_class_svm':
                     model = self._train_svm_fast(X_scaled)
                 else:
-                    print(f"❌ Unknown algorithm: {algorithm}")
+                    print(f"Unknown algorithm: {algorithm}")
                     continue
                 
                 self.models[algorithm] = model
                 algo_time = time.time() - algo_start
-                print(f"✅ {algorithm} trained in {algo_time:.2f} seconds")
+                print(f"{algorithm} trained in {algo_time:.2f} seconds")
                 
                 # Memory cleanup for Tesla P40
                 if self.use_gpu:
                     self._gpu_memory_cleanup()
                     
             except Exception as e:
-                print(f"❌ Error training {algorithm}: {e}")
+                print(f" Error training {algorithm}: {e}")
                 continue
         
         # Step 4: Save models
         self._save_models_optimized()
         
         total_time = time.time() - start_time
-        print(f"\n🎉 TESLA P40 TRAINING COMPLETED in {total_time:.2f} seconds")
-        print(f"📦 Models saved: {list(self.models.keys())}")
+        print(f"\n TESLA P40 TRAINING COMPLETED in {total_time:.2f} seconds")
+        print(f" Models saved: {list(self.models.keys())}")
         
         if self.use_gpu:
             self._print_gpu_stats()
@@ -312,7 +304,7 @@ class TeslaP40OptimizedMLTrainer:
         try:
             if isinstance(data, pd.DataFrame):
                 gpu_data = cudf.from_pandas(data)
-                print(f"🎮 Moved {len(data)} samples to Tesla P40 GPU memory")
+                print(f" Moved {len(data)} samples to Tesla P40 GPU memory")
                 return gpu_data
             return data
         except Exception as e:
@@ -329,7 +321,7 @@ class TeslaP40OptimizedMLTrainer:
         pcap_files = [f for f in os.listdir(data_dir) if f.endswith('.pcap')]
         
         for i, pcap_file in enumerate(pcap_files):
-            print(f"📦 Processing file {i+1}/{len(pcap_files)}: {pcap_file}")
+            print(f" Processing file {i+1}/{len(pcap_files)}: {pcap_file}")
             file_path = os.path.join(data_dir, pcap_file)
             
             # Use optimized extraction with larger batches for Tesla P40
@@ -356,12 +348,12 @@ class TeslaP40OptimizedMLTrainer:
         combined_df = combined_df.dropna()
         combined_df = combined_df.replace([np.inf, -np.inf], 0)
         
-        print(f"📊 Tesla P40 Dataset: {len(combined_df)} samples, {combined_df.shape[1]} features")
+        print(f" Tesla P40 Dataset: {len(combined_df)} samples, {combined_df.shape[1]} features")
         return combined_df
     
     def _train_gpu_isolation_forest(self, X_scaled):
         """Tesla P40 optimized Isolation Forest (CPU with GPU-friendly parameters)"""
-        print("🎮 Training Tesla P40-optimized Isolation Forest...")
+        print(" Training Tesla P40-optimized Isolation Forest...")
         
         # Tesla P40 optimized parameters for larger datasets
         model = IsolationForest(
@@ -375,15 +367,15 @@ class TeslaP40OptimizedMLTrainer:
         
         # Use PyTorch tensors if available for data optimization
         if GPU_AVAILABLE:
-            print("   🎯 Using PyTorch tensor optimization")
+            print("    Using PyTorch tensor optimization")
             
         model.fit(X_scaled)
-        print(f"   🎯 Tesla P40-optimized Isolation Forest: {model.n_estimators} trees, {len(X_scaled)} samples")
+        print(f"    Tesla P40-optimized Isolation Forest: {model.n_estimators} trees, {len(X_scaled)} samples")
         return model
     
     def _train_gpu_dbscan(self, X_scaled):
         """Tesla P40 optimized DBSCAN with intelligent parameters"""
-        print("🎮 Training Tesla P40-optimized DBSCAN...")
+        print(" Training Tesla P40-optimized DBSCAN...")
         
         # For large datasets, use optimized parameters
         if len(X_scaled) > 50000:
@@ -399,7 +391,7 @@ class TeslaP40OptimizedMLTrainer:
             distances, _ = neighbors_fit.kneighbors(X_sample)
             distances = np.sort(distances[:, 4], axis=0)
             eps = np.percentile(distances, 90)
-            print(f"   📊 DBSCAN using sample-optimized eps: {eps:.4f}")
+            print(f"    DBSCAN using sample-optimized eps: {eps:.4f}")
         else:
             eps = 0.5
         
@@ -412,12 +404,12 @@ class TeslaP40OptimizedMLTrainer:
         
         model.fit(X_scaled)
         clusters = len(set(model.labels_)) - (1 if -1 in model.labels_ else 0)
-        print(f"   🎯 Tesla P40-optimized DBSCAN: {clusters} clusters found")
+        print(f"    Tesla P40-optimized DBSCAN: {clusters} clusters found")
         return model
     
     def _train_gpu_svm(self, X_scaled):
         """Tesla P40 optimized One-Class SVM with intelligent sampling"""
-        print("🎮 Training Tesla P40-optimized One-Class SVM...")
+        print(" Training Tesla P40-optimized One-Class SVM...")
         
         # Tesla P40 can handle larger datasets with intelligent sampling
         if len(X_scaled) > 75000:
@@ -427,7 +419,7 @@ class TeslaP40OptimizedMLTrainer:
             else:
                 indices = np.random.choice(len(X_scaled), sample_size, replace=False)
                 X_sample = X_scaled[indices] if hasattr(X_scaled, '__getitem__') else X_scaled.iloc[indices]
-            print(f"   📊 SVM using Tesla P40-optimized sample of {sample_size}/{len(X_scaled)} points")
+            print(f"    SVM using Tesla P40-optimized sample of {sample_size}/{len(X_scaled)} points")
         else:
             X_sample = X_scaled
         
@@ -439,7 +431,7 @@ class TeslaP40OptimizedMLTrainer:
         )
         
         model.fit(X_sample)
-        print(f"   🎯 Tesla P40-optimized SVM: trained on {len(X_sample)} samples")
+        print(f"    Tesla P40-optimized SVM: trained on {len(X_sample)} samples")
         return model
     
     def _gpu_memory_cleanup(self):
@@ -447,7 +439,7 @@ class TeslaP40OptimizedMLTrainer:
         try:
             import cupy
             cupy.get_default_memory_pool().free_all_blocks()
-            print("   🧹 Tesla P40 memory cleaned")
+            print("    Tesla P40 memory cleaned")
         except Exception as e:
             print(f"   ⚠️ GPU cleanup warning: {e}")
     
@@ -458,7 +450,7 @@ class TeslaP40OptimizedMLTrainer:
             mempool = cupy.get_default_memory_pool()
             used = mempool.used_bytes() / 1024**3
             total = mempool.total_bytes() / 1024**3
-            print(f"🎮 Tesla P40 Memory: {used:.2f}GB used / {total:.2f}GB allocated")
+            print(f" Tesla P40 Memory: {used:.2f}GB used / {total:.2f}GB allocated")
         except Exception as e:
             print(f"⚠️ GPU stats unavailable: {e}")
         
@@ -472,7 +464,7 @@ class TeslaP40OptimizedMLTrainer:
         pcap_files = [f for f in os.listdir(data_dir) if f.endswith('.pcap')]
         
         for i, pcap_file in enumerate(pcap_files):
-            print(f"📦 Processing file {i+1}/{len(pcap_files)}: {pcap_file}")
+            print(f" Processing file {i+1}/{len(pcap_files)}: {pcap_file}")
             file_path = os.path.join(data_dir, pcap_file)
             
             # Use optimized extraction
@@ -520,7 +512,7 @@ class TeslaP40OptimizedMLTrainer:
         if len(X_scaled) > 5000:
             sample_indices = np.random.choice(len(X_scaled), 5000, replace=False)
             X_sample = X_scaled[sample_indices]
-            print(f"  📊 SVM using sample of 5000/{len(X_scaled)} points")
+            print(f"   SVM using sample of 5000/{len(X_scaled)} points")
         else:
             X_sample = X_scaled
         
@@ -542,13 +534,13 @@ class TeslaP40OptimizedMLTrainer:
             model_path = os.path.join(model_dir, f"{name}_model.pkl")
             with open(model_path, 'wb') as f:
                 pickle.dump(model, f)
-            print(f"💾 Saved {name} to {model_path}")
+            print(f" Saved {name} to {model_path}")
         
         # Save scaler
         scaler_path = os.path.join(model_dir, "scaler.pkl")
         with open(scaler_path, 'wb') as f:
             pickle.dump(self.scalers['main'], f)
-        print(f"💾 Saved scaler to {scaler_path}")
+        print(f" Saved scaler to {scaler_path}")
 
 
 def main():
@@ -582,14 +574,14 @@ def main():
     if args.quick:
         args.max_samples = 10000
         args.algorithms = ['gpu_isolation_forest'] if use_gpu else ['isolation_forest']
-        print("🚀 QUICK GPU MODE: 10K samples, GPU Isolation Forest")
+        print(" QUICK GPU MODE: 10K samples, GPU Isolation Forest")
     elif args.full_dataset:
         args.max_samples = 500000  # Tesla P40 can handle this
-        print("🎮 FULL DATASET MODE: 500K samples, all GPU algorithms")
+        print(" FULL DATASET MODE: 500K samples, all GPU algorithms")
     elif args.cpu_only:
         args.algorithms = ['isolation_forest', 'one_class_svm']
         args.batch_size = 10000
-        print("🔄 CPU-ONLY MODE: Traditional algorithms")
+        print(" CPU-ONLY MODE: Traditional algorithms")
     
     # Initialize Tesla P40 trainer
     trainer = TeslaP40OptimizedMLTrainer(
@@ -600,7 +592,7 @@ def main():
     )
     
     # Print configuration
-    print(f"\n🎮 TESLA P40 CONFIGURATION:")
+    print(f"\n TESLA P40 CONFIGURATION:")
     print(f"   GPU Mode: {use_gpu}")
     print(f"   Max Samples: {args.max_samples:,}")
     print(f"   Batch Size: {args.batch_size:,}")
