@@ -35,7 +35,7 @@ def create_database_and_tables(client):
         client.command("CREATE DATABASE IF NOT EXISTS l1_anomaly_detection")
         print("✓ Database created/verified")
         
-        # Create anomalies table
+        # Create anomalies table with proper syntax
         anomalies_sql = """
         CREATE TABLE IF NOT EXISTS l1_anomaly_detection.anomalies (
             id String,
